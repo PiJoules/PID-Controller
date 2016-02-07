@@ -1,6 +1,7 @@
 *venv/
 *.png
 !images/*.png
+tmp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
