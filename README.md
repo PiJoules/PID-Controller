@@ -29,3 +29,4 @@ $ eog power.png
 ## Resources
 - https://en.wikipedia.org/wiki/PID_controller#Manual_tuning (This is the best gif I have seen explaining how the different Ks affect the output.)
 - https://pythonhosted.org/controlsystems/controlsystems-module.html
+- http://lethain.com/genetic-algorithms-cool-name-damn-simple/
