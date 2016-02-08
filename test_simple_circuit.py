@@ -68,7 +68,7 @@ def main():
 
     resistance = 4000.0
     generations = 1000
-    population = 10
+    population = 100
     steps = 100
     setpoint = 100  # Watts
 
@@ -76,8 +76,8 @@ def main():
                          system_args=(resistance, ),
                          max_p=1.0,
                          max_i=1.0,
-                         max_d=1.0,
-                         tau=steps / 32,
+                         max_d=0.1,
+                         tau=steps / 64,
                          )
     Kp, Ki, Kd = tuner.find_gains(setpoint, iterations=generations)
     fitness = tuner.fitness((Kp, Ki, Kd), setpoint)

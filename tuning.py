@@ -125,7 +125,7 @@ class GeneticTuner(Genetic):
             y = y[::-1]
             t = t[::-1]
 
-        t_ = float("Inf")
+        t_ = t[0]
         tolerance_range = max(y) - min(y)
         for i in xrange(len(y)):
             tolerance = abs(y[i] - point)
