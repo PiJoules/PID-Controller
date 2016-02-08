@@ -114,6 +114,13 @@ class Genetic(object):
             if random() < mutate:
                 mutate_individual(individual)
 
+        # Make sure there is enough diversity between the parents.
+        #unique_parents = set(map(tuple, parents))
+        #while len(unique_parents) < 2:
+        #    parent = choice(parents)
+        #    mutate_individual(parent)
+        #    unique_parents = set(map(tuple, parents))
+
         # Breed between parents to create children until the previous
         # population size is reached.
         children = []
@@ -121,6 +128,7 @@ class Genetic(object):
         while len(children) < shortage:
             male = choice(parents)
             female = choice(parents)
+            #if male != female:
             children.append(breed(male, female))
 
         return parents + children

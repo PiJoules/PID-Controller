@@ -44,8 +44,10 @@ class PID(object):
 
         # Prep variables for finding PID
         error = setpoint - measurement
-        derivative = (error - last_error) / dt
-        integral = (error * dt) + integral
+        #derivative = 1.0 * (error - last_error) / dt
+        #integral += error * dt * 1.0
+        derivative = error - last_error
+        integral += error
 
         # Find PID
         control = (Kp * error) + (Ki * integral) + (Kd * derivative)

@@ -18,8 +18,8 @@ class Circuit(object):
     """
 
     def __init__(self, resistance, init_voltage=0.0):
-        self._source_voltage = init_voltage
-        self._resistance = resistance
+        self._source_voltage = init_voltage * 1.0
+        self._resistance = resistance * 1.0
         self._update()
 
     @property
@@ -67,17 +67,20 @@ def main():
     pylab.clf()
 
     resistance = 4000.0
-    generations = 1000
-    population = 100
-    steps = 100
-    setpoint = 100  # Watts
+    generations = 100
+    population = 50
+    dt = 0.01
+    #end_time = 1.0  # seconds
+    #dt = 1
+    end_time = 10
+    setpoint = 100.0  # Watts
 
-    tuner = GeneticTuner(population, steps / 8, 1, Circuit,
+    tuner = GeneticTuner(population, end_time / 4, dt, Circuit,
                          system_args=(resistance, ),
-                         max_p=1.0,
-                         max_i=1.0,
-                         max_d=0.1,
-                         tau=steps / 64,
+                         max_p=20.0,
+                         max_i=0.75,
+                         max_d=0.02,
+                         #tau=0.001,
                          )
     Kp, Ki, Kd = tuner.find_gains(setpoint, iterations=generations)
     fitness = tuner.fitness((Kp, Ki, Kd), setpoint)
@@ -87,16 +90,17 @@ def main():
 
     power = []
     voltage = []
-    for i in xrange(steps):
-        if i < steps / 2:
-            pid.update(c.power, setpoint)
+    t = xrange(int(end_time / dt))
+    for i in t:
+        if i < end_time / dt / 2:
+            pid.update(c.power, setpoint, dt=dt)
         else:
-            pid.update(c.power, setpoint / 2)
+            pid.update(c.power, setpoint / 2, dt=dt)
         c.set_source(pid.control)
         voltage.append(pid.control)
         power.append(c.power)
 
-    pylab.plot(xrange(steps), power)
+    pylab.plot(map(lambda x: x * dt, t), power)
     pylab.xlabel("Time")
     pylab.ylabel("Power")
     pylab.title("Power across {} Ohm resistor. (Setpoint of {} W)".format(resistance, setpoint))

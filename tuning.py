@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+from operator import add
 from random import random, uniform
 from genetic import Genetic
 from pid import PID
@@ -21,20 +22,20 @@ class GeneticTuner(Genetic):
                  min_d=0.0, max_d=0.01,
                  tau=None):
         super(GeneticTuner, self).__init__(population_size)
-        self._min_p = min_p
-        self._max_p = max_p
-        self._min_i = min_i
-        self._max_i = max_i
-        self._min_d = min_d
-        self._max_d = max_d
+        self._min_p = min_p * 1.0
+        self._max_p = max_p * 1.0
+        self._min_i = min_i * 1.0
+        self._max_i = max_i * 1.0
+        self._min_d = min_d * 1.0
+        self._max_d = max_d * 1.0
 
         # Desired amount of time (s) to reach setpoint
-        self._rise_time = rise_time
+        self._rise_time = rise_time * 1.0
         # Sampleing period in seconds
-        self._sample_period = sample_period
+        self._sample_period = sample_period * 1.0
 
         # Tau is another way to fit an individual
-        self._tau = tau
+        self._tau = (tau or 0) * 1.0
 
         # System to simulate when finding gains.
         # This system will be created every time when finding fitness
@@ -66,7 +67,9 @@ class GeneticTuner(Genetic):
 
         system = self._system_cls(*self._system_args, **self._system_kwargs)
 
-        t = range(0, self._rise_time, dt)
+        #t = range(0, int(self._rise_time), int(dt))
+        t = range(int(self._rise_time / dt))
+        #print(int(self._rise_time / dt))
         y = []
         for i in t:
             output = system.measurement
@@ -74,13 +77,15 @@ class GeneticTuner(Genetic):
             y.append(output)
             system.update(pid.control)
 
-        if tau is not None:
-            t632 = self._time_near(t, y, 0.632 * target)
-            tau_diff = abs(tau - t632)
-        else:
-            tau_diff = 0
+        #if tau is not None:
+        #    t632 = self._time_near(t, y, 0.632 * target)
+        #    tau_diff = abs(tau - t632)
+        #else:
+        #    tau_diff = 0
 
-        return abs(target - y[-1]) + tau_diff
+        #return abs(target - y[-1]) + tau_diff
+        #return reduce(lambda x, y_: x + abs(target - y_), y, 0)
+        return sum(map(lambda x: (target - x) * (target - x), y))
 
     def _mutate_individual(self, individual):
         """Randomly change any of the gains."""
@@ -103,7 +108,7 @@ class GeneticTuner(Genetic):
         for i in xrange(iterations):
             population = self._evolve(population, target, retain,
                                       rand_select, mutate)
-        gains = max(population, key=lambda x: fitness(x, target))
+        gains = min(population, key=lambda x: fitness(x, target))
         self._cached_population = population
         self._cached_gains = gains
         return gains
