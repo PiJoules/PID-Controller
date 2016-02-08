@@ -22,7 +22,7 @@ class Genetic(object):
         """
         raise NotImplementedError
 
-    def _fitness(self, individual, target):
+    def fitness(self, individual, target):
         """
         Get the fitness of an individual.
 
@@ -70,7 +70,7 @@ class Genetic(object):
 
     def grade(self, population, target):
         """Average fitness for a population."""
-        fitness = self._fitness
+        fitness = self.fitness
         total = reduce(add, [fitness(x, target) for x in population], 0)
         return (total * 1.0) / len(population)
 
@@ -95,7 +95,7 @@ class Genetic(object):
             A population representing the next generation after the given one.
         """
         # Localize methods
-        fitness = self._fitness
+        fitness = self.fitness
         mutate_individual = self._mutate_individual
         breed = self._breed
 

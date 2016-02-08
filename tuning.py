@@ -43,13 +43,16 @@ class GeneticTuner(Genetic):
         self._system_args = system_args or []
         self._system_kwargs = system_kwargs or {}
 
+        self._cached_gains = None
+        self._cached_population = None
+
     def _create_individual(self):
         """Individual is just gains."""
         return [uniform(self._min_p, self._max_p),
                 uniform(self._min_i, self._max_i),
                 uniform(self._min_d, self._max_d)]
 
-    def _fitness(self, individual, target):
+    def fitness(self, individual, target):
         """
         Check the final value of running the simulation and the time
         constant tau where y is ~63.2% of the target value.
@@ -95,12 +98,23 @@ class GeneticTuner(Genetic):
     def find_gains(self, target, iterations=100, retain=0.2,
                    rand_select=0.05, mutate=0.01):
         """Generate the gains."""
-        fitness = self._fitness
+        fitness = self.fitness
         population = self._create_population()
         for i in xrange(iterations):
             population = self._evolve(population, target, retain,
                                       rand_select, mutate)
-        return max(population, key=lambda x: fitness(x, target))
+        gains = max(population, key=lambda x: fitness(x, target))
+        self._cached_population = population
+        self._cached_gains = gains
+        return gains
+
+    @property
+    def cached_gains(self):
+        return self._cached_gains
+
+    @property
+    def cached_population(self):
+        return self._cached_population
 
     @staticmethod
     def _time_near(t, y, point, backwards=True):
@@ -111,7 +125,7 @@ class GeneticTuner(Genetic):
             y = y[::-1]
             t = t[::-1]
 
-        t_ = None
+        t_ = float("Inf")
         tolerance_range = max(y) - min(y)
         for i in xrange(len(y)):
             tolerance = abs(y[i] - point)

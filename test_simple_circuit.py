@@ -67,14 +67,20 @@ def main():
     pylab.clf()
 
     resistance = 4000.0
-    generations = 3000
+    generations = 1000
     population = 10
-    steps = 400
+    steps = 100
     setpoint = 100  # Watts
 
-    tuner = GeneticTuner(population, generations, 1, Circuit,
-                         system_args=(resistance, ))
-    Kp, Ki, Kd = tuner.find_gains(setpoint)
+    tuner = GeneticTuner(population, steps / 8, 1, Circuit,
+                         system_args=(resistance, ),
+                         max_p=1.0,
+                         max_i=1.0,
+                         max_d=1.0,
+                         tau=steps / 32,
+                         )
+    Kp, Ki, Kd = tuner.find_gains(setpoint, iterations=generations)
+    fitness = tuner.fitness((Kp, Ki, Kd), setpoint)
 
     c = Circuit(resistance)
     pid = PID(Kp=Kp, Ki=Ki, Kd=Kd)
@@ -95,7 +101,8 @@ def main():
     pylab.ylabel("Power")
     pylab.title("Power across {} Ohm resistor. (Setpoint of {} W)".format(resistance, setpoint))
     pylab.savefig("power.png")
-    print(Kp, Ki, Kd)
+    print("Kp:{}, Ki:{}, Kd:{}".format(Kp, Ki, Kd))
+    print("fitness:{}".format(fitness))
 
     return 0
 
