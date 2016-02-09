@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 
-from operator import add
 from random import random, uniform
 from genetic import Genetic
 from pid import PID
@@ -19,8 +18,7 @@ class GeneticTuner(Genetic):
                  system_cls, system_args=None, system_kwargs=None,
                  min_p=0.0, max_p=1.0,
                  min_i=0.0, max_i=0.1,
-                 min_d=0.0, max_d=0.01,
-                 tau=None):
+                 min_d=0.0, max_d=0.01):
         super(GeneticTuner, self).__init__(population_size)
         self._min_p = min_p * 1.0
         self._max_p = max_p * 1.0
@@ -33,9 +31,6 @@ class GeneticTuner(Genetic):
         self._rise_time = rise_time * 1.0
         # Sampleing period in seconds
         self._sample_period = sample_period * 1.0
-
-        # Tau is another way to fit an individual
-        self._tau = (tau or 0) * 1.0
 
         # System to simulate when finding gains.
         # This system will be created every time when finding fitness
@@ -59,7 +54,6 @@ class GeneticTuner(Genetic):
         constant tau where y is ~63.2% of the target value.
         """
         dt = self._sample_period
-        tau = self._tau
 
         pid = PID(Kp=individual[0],
                   Ki=individual[1],
@@ -67,24 +61,14 @@ class GeneticTuner(Genetic):
 
         system = self._system_cls(*self._system_args, **self._system_kwargs)
 
-        #t = range(0, int(self._rise_time), int(dt))
         t = range(int(self._rise_time / dt))
-        #print(int(self._rise_time / dt))
         y = []
         for i in t:
             output = system.measurement
             pid.update(output, target, dt=dt)
             y.append(output)
-            system.update(pid.control)
+            system.update(pid.control, t=i * dt)
 
-        #if tau is not None:
-        #    t632 = self._time_near(t, y, 0.632 * target)
-        #    tau_diff = abs(tau - t632)
-        #else:
-        #    tau_diff = 0
-
-        #return abs(target - y[-1]) + tau_diff
-        #return reduce(lambda x, y_: x + abs(target - y_), y, 0)
         return sum(map(lambda x: (target - x) * (target - x), y))
 
     def _mutate_individual(self, individual):
